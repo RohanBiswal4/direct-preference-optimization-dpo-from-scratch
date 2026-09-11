@@ -31,7 +31,7 @@ def gather_token_logprobs(log_probs, token_ids):
 # Step 4 - masked_sequence_logprob
 def masked_sequence_logprob(token_logprobs, mask):
     # Sum per-token log-probabilities under a binary mask to obtain a single sequence log-probability per example.
-    new_probs=np.where(mask,token_logprobs,0)
+    new_probs=np.where(mask,token_logprobs,0) # sum only at the positions where masks are valid
     return np.sum(new_probs,axis=-1)
 
 # Step 5 - init_policy_params (not yet solved)

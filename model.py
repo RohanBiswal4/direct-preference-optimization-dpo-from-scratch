@@ -28,8 +28,11 @@ def gather_token_logprobs(log_probs, token_ids):
     B,T=token_ids.shape
     return log_probs[np.arange(B)[:, None], np.arange(T)[None, :], token_ids]
 
-# Step 4 - masked_sequence_logprob (not yet solved)
-# TODO: implement
+# Step 4 - masked_sequence_logprob
+def masked_sequence_logprob(token_logprobs, mask):
+    # Sum per-token log-probabilities under a binary mask to obtain a single sequence log-probability per example.
+    new_probs=np.where(mask,token_logprobs,0)
+    return np.sum(new_probs,axis=-1)
 
 # Step 5 - init_policy_params (not yet solved)
 # TODO: implement

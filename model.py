@@ -46,8 +46,11 @@ def init_policy_params(vocab_size, d_model, rng=None):
     D['b_out']=np.zeros(vocab_size)
     return D
 
-# Step 6 - policy_token_logits (not yet solved)
-# TODO: implement
+# Step 6 - policy_token_logits
+def policy_token_logits(params, token_ids):
+    # Compute next-token logits for every position from policy params and token ids.
+    embedding_matrix=params['embed']
+    return embedding_matrix[token_ids]@ params['W_out'] + params['b_out']
 
 # Step 7 - policy_sequence_logprob (not yet solved)
 # TODO: implement

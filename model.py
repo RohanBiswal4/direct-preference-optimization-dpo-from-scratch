@@ -34,8 +34,17 @@ def masked_sequence_logprob(token_logprobs, mask):
     new_probs=np.where(mask,token_logprobs,0) # sum only at the positions where masks are valid
     return np.sum(new_probs,axis=-1)
 
-# Step 5 - init_policy_params (not yet solved)
-# TODO: implement
+# Step 5 - init_policy_params
+def init_policy_params(vocab_size, d_model, rng=None):
+    # Initialize the policy language-model parameters with small random values
+    if rng is None:
+        rng=np.random.default_rng()
+    D={} 
+    # random normal based initialization
+    D['embed']=rng.normal(loc=0.0, scale=0.02, size=(vocab_size, d_model))
+    D['W_out']=rng.normal(loc=0.0, scale=0.02, size=(d_model,vocab_size))
+    D['b_out']=np.zeros(vocab_size)
+    return D
 
 # Step 6 - policy_token_logits (not yet solved)
 # TODO: implement

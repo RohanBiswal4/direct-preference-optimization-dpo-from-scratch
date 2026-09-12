@@ -158,8 +158,17 @@ def dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_
     margins = beta * (chosen_log_ratio - rejected_log_ratio)
     return np.asarray(margins).reshape(-1) # of shape (B,) 1D array
 
-# Step 16 - dpo_loss (not yet solved)
-# TODO: implement
+# Step 16 - dpo_loss
+def dpo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
+    # TODO: return the mean logistic loss on the DPO pair margins as a scalar float
+    margins = dpo_pair_margin(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta)
+    losses = np.logaddexp(0.0, -margins) # stable softplus equivalent to softmax
+    return np.mean(losses).item()
 
 # Step 17 - dpo_loss_grad (not yet solved)
 # TODO: implement

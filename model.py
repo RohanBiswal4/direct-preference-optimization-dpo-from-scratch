@@ -91,8 +91,10 @@ def bradley_terry_loss(reward_chosen, reward_rejected):
     log_loss=np.log(probs)
     return -np.mean(log_loss).item() # return the average log loss
 
-# Step 10 - reward_accuracy (not yet solved)
-# TODO: implement
+# Step 10 - reward_accuracy
+def reward_accuracy(reward_chosen, reward_rejected):
+    # Fraction of pairs where chosen reward is strictly higher than rejected.
+    return np.sum(np.where(reward_chosen>reward_rejected,1,0)).item()/len(reward_chosen)
 
 # Step 11 - build_preference_pairs (not yet solved)
 # TODO: implement

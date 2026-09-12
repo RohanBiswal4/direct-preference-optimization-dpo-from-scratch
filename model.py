@@ -133,8 +133,17 @@ def sample_preference_batch(pairs, batch_size, rng=None):
         D['prompt']=np.array([pairs[i]['prompt'] for i in indices])
     return D
 
-# Step 13 - freeze_reference_logprobs (not yet solved)
-# TODO: implement
+# Step 13 - freeze_reference_logprobs
+def freeze_reference_logprobs(ref_params, pairs):
+    # Precompute and freeze reference-model sequence log-probabilities for every chosen and rejected response...
+    L=[]
+    if len(pairs)>0:
+        for i in range(len(pairs)):
+            out={}
+            out['chosen']=policy_sequence_logprob(ref_params, pairs[i]['chosen_ids'][None,:], pairs[i]['chosen_mask'][None,:])[0]
+            out['rejected']=policy_sequence_logprob(ref_params, pairs[i]['rejected_ids'][None,:], pairs[i]['rejected_mask'][None,:])[0]
+            L.append(out)
+    return L
 
 # Step 14 - policy_reference_logratio (not yet solved)
 # TODO: implement

@@ -153,17 +153,10 @@ def policy_reference_logratio(policy_logprob, reference_logprob):
 # Step 15 - dpo_pair_margin
 def dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
     #Compute the scaled DPO pair margin for a batch of preference pairs
-    policy_chosen = np.asarray(policy_logprob_chosen)
-    policy_rejected = np.asarray(policy_logprob_rejected)
-    reference_chosen = np.asarray(ref_logprob_chosen)
-    reference_rejected = np.asarray(ref_logprob_rejected)
-
-    margins = beta * (
-        (policy_chosen - reference_chosen)
-        - (policy_rejected - reference_rejected)
-    )
-
-    return np.asarray(margins).reshape(-1)
+    chosen_log_ratio = policy_logprob_chosen - ref_logprob_chosen # policy/ref log-ratio for chosen
+    rejected_log_ratio = policy_logprob_rejected - ref_logprob_rejected # policy/ref log-ratio for rejected
+    margins = beta * (chosen_log_ratio - rejected_log_ratio)
+    return np.asarray(margins).reshape(-1) # of shape (B,) 1D array
 
 # Step 16 - dpo_loss (not yet solved)
 # TODO: implement

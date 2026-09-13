@@ -267,17 +267,39 @@ def dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate):
 # Step 19 - train_dpo
 def train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch_size, rng=None):
     # Sample batches, run DPO train steps, record per-step metrics.
-    history=[]
+    history = []
+
     for step in range(num_steps):
-        batch=sample_preference_batch(pairs, batch_size, rng=rng)
-        ref_logprobs_batch={
-            'chosen': np.asarray(ref_logprobs['chosen'])[indices],
-            'rejected': np.asarray(ref_logprobs['rejected'])[indices]
+        # 1. Sample a minibatch
+        batch = sample_preference_batch(
+            pairs,
+            batch_size,
+            rng=rng,
+        )
+
+        # 2. Get the dataset indices selected for this minibatch
+        indices = batch["indices"]
+
+        # 3. Select the corresponding frozen reference log-probs
+        ref_logprobs_batch = {
+            "chosen": np.asarray(ref_logprobs["chosen"])[indices],
+            "rejected": np.asarray(ref_logprobs["rejected"])[indices],
         }
-        s,metric=dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate)
-        metric['step']=step 
+
+        # 4. Perform one DPO gradient-update step
+        params, metric = dpo_train_step(
+            params,
+            batch,
+            ref_logprobs_batch,
+            beta,
+            learning_rate,
+        )
+
+        # 5. Record the training step
+        metric["step"] = step
         history.append(metric)
-    return params,history
+
+    return params, history
 
 # Step 20 - length_normalized_logprob
 def length_normalized_logprob(seq_logprob, mask):
@@ -340,35 +362,32 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
 
     policy_chosen = []
     policy_rejected = []
-    ref_chosen=[]
-    ref_rejected=[]
-    # Evaluate every preference pair separately
-    for pair,ref in zip(pairs,ref_logprobs):
+
+    # Evaluate each preference pair separately.
+    # This also supports variable sequence lengths.
+    for pair in pairs:
 
         chosen_lp = policy_sequence_logprob(
             params,
             pair['chosen_ids'][None, :],
             pair['chosen_mask'][None, :]
-        )
+        )[0]
 
         rejected_lp = policy_sequence_logprob(
             params,
             pair['rejected_ids'][None, :],
             pair['rejected_mask'][None, :]
-        )
+        )[0]
 
         policy_chosen.append(chosen_lp)
         policy_rejected.append(rejected_lp)
-        ref_chosen.append(ref['chosen'])
-        ref_rejected.append(ref['rejected'])
 
-    # Convert policy log-probs to arrays
     policy_chosen = np.asarray(policy_chosen)
     policy_rejected = np.asarray(policy_rejected)
 
-    # Reference log-probs are already stored as arrays
-    ref_chosen = np.asarray(ref_chosen)
-    ref_rejected = np.asarray(ref_rejected)
+    # Frozen reference log-probabilities.
+    ref_chosen = np.asarray(ref_logprobs['chosen'])
+    ref_rejected = np.asarray(ref_logprobs['rejected'])
 
     # DPO loss
     result['dpo_loss'] = dpo_loss(

@@ -277,8 +277,11 @@ def ipo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen,
     margin=dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected,1)
     return np.mean((margin -0.5/beta)**2).item() # the squred ipo loss
 
-# Step 22 - implicit_reward (not yet solved)
-# TODO: implement
+# Step 22 - implicit_reward
+def implicit_reward(policy_logprob, reference_logprob, beta):
+    # return the vector of DPO implicit rewards for a batch of sequences
+    reward=policy_reference_logratio(policy_logprob, reference_logprob)*beta 
+    return reward # the KL divergence
 
 # Step 23 - preference_accuracy (not yet solved)
 # TODO: implement

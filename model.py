@@ -128,7 +128,8 @@ def sample_preference_batch(pairs, batch_size, rng=None):
         'chosen_ids':chosen_ids,
         'rejected_ids':rejected_ids,
         'chosen_mask':chosen_mask,
-        'rejected_mask':rejected_mask }
+        'rejected_mask':rejected_mask,
+        'indices':indices }
     if "prompt" in pairs[0]:
         D['prompt']=np.array([pairs[i]['prompt'] for i in indices])
     return D
@@ -248,8 +249,20 @@ def dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate):
         updated[key]=params[key]-learning_rate*grad[key]
     return updated,m
 
-# Step 19 - train_dpo (not yet solved)
-# TODO: implement
+# Step 19 - train_dpo
+def train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch_size, rng=None):
+    # TODO: Sample batches, run DPO train steps, record per-step metrics.
+    history=[]
+    for step in range(num_steps):
+        batch=sample_preference_batch(pairs, batch_size, rng=rng)
+        ref_logprobs_batch={
+            'chosen':batch['chosen_ids'],
+            'rejected':batch['rejected_ids']
+        }
+        params,metric=dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate)
+        metric['step']=step 
+        history.append(metric)
+    return params,history
 
 # Step 20 - length_normalized_logprob (not yet solved)
 # TODO: implement

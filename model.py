@@ -173,29 +173,7 @@ def dpo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen,
 # Step 17 - dpo_loss_grad
 def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
     # Evaluate DPO loss and return parameter gradients for the policy
-    # B= len(batch['chosen_ids'])
-    # grads = {# Initializing gradients of the same shape as that of the parameters
-    #     key: np.zeros_like(value) for key, value in params.items()
-    # }
-    # # extract the policy ids and reference ids
-    # chosen_ids=batch['chosen_ids']
-    # chosen_mask=batch['chosen_mask']
-    # rejected_ids=batch['rejected_ids']
-    # rejected_mask=batch['rejected_mask']
-    # policy_logprob_chosen=policy_sequence_logprob(params,chosen_ids, chosen_mask)
-    # policy_logprob_rejected=policy_sequence_logprob(params,rejected_ids, rejected_mask)
-    # ref_logprob_chosen=ref_chosen = np.asarray([x['chosen'] for x in ref_logprobs_batch])
-    # ref_logprob_rejected = np.asarray([x['rejected'] for x in ref_logprobs_batch])
-    # for b in range(B):
-    #     margins=dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta)
-    #     gw=sequence_logprob_grad(params, chosen_ids, chosen_mask)
-    #     gl=sequence_logprob_grad(params, rejected_ids, rejected_mask)
-    #     # Chain rule:
-    #     # dL/dtheta =beta * (sigmoid(m)-1) / B * (d log pi_chosen/dtheta- d log pi_rejected/dtheta)
-    #     sigmoid = 1.0 / (1.0 + np.exp(-margins))
-    #     dL_dm = sigmoid - 1.0
-    #     scale = beta * dL_dm[b] / B
-    B = len(batch['chosen_ids']) # The sequence length of each batch
+    B = len(batch['chosen_ids']) # The batch size
     policy_logprob_chosen = policy_sequence_logprob(params,batch['chosen_ids'],batch['chosen_mask'] )
     policy_logprob_rejected = policy_sequence_logprob(params,batch['rejected_ids'],batch['rejected_mask'])
     ref_logprob_chosen = np.asarray( ref_logprobs_batch['chosen'])

@@ -312,30 +312,36 @@ def reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logp
 def evaluate_dpo(params, pairs, ref_logprobs, beta):
     # Result dict of all the summary
     result = {}
+
     policy_chosen = []
     policy_rejected = []
-    ref_chosen = []
-    ref_rejected = []
+    ref_chosen=[]
+    ref_rejected=[]
     # Evaluate every preference pair separately
     for pair,ref in zip(pairs,ref_logprobs):
+
         chosen_lp = policy_sequence_logprob(
             params,
-            pair['chosen_ids'][None,:],
-            pair['chosen_mask'][None,:]
+            pair['chosen_ids'][None, :],
+            pair['chosen_mask'][None, :]
         )
+
         rejected_lp = policy_sequence_logprob(
             params,
-            pair['rejected_ids'][None,:],
-            pair['rejected_mask'][None,:]
+            pair['rejected_ids'][None, :],
+            pair['rejected_mask'][None, :]
         )
+
         policy_chosen.append(chosen_lp)
         policy_rejected.append(rejected_lp)
         ref_chosen.append(ref['chosen'])
         ref_rejected.append(ref['rejected'])
 
-    # Convert the resulting scalar values to arrays
+    # Convert policy log-probs to arrays
     policy_chosen = np.asarray(policy_chosen)
     policy_rejected = np.asarray(policy_rejected)
+
+    # Reference log-probs are already stored as arrays
     ref_chosen = np.asarray(ref_chosen)
     ref_rejected = np.asarray(ref_rejected)
 
@@ -347,6 +353,7 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         ref_rejected,
         beta
     )
+
     # Preference accuracy
     result['preference_accuracy'] = preference_accuracy(
         policy_chosen,
@@ -355,6 +362,7 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         ref_rejected,
         beta
     )
+
     # KL to reference
     kl_chosen = kl_to_reference(
         policy_chosen,
@@ -365,8 +373,8 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         policy_rejected,
         ref_rejected
     )
-    # Averaged KL
-    result['kl_to_reference'] = 0.5*(
+
+    result['kl_to_reference'] = 0.5 * (
         kl_chosen + kl_rejected
     )
 
@@ -378,6 +386,7 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         ref_rejected,
         beta
     )
+
     for key, value in margin_stats.items():
         result[key] = value
 

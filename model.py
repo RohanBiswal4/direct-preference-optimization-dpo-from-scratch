@@ -310,41 +310,12 @@ def reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logp
 
 # Step 26 - evaluate_dpo
 def evaluate_dpo(params, pairs, ref_logprobs, beta):
-    # Aggregate a full set of DPO evaluation metrics over a preference dataset.
-    # result={}
-    # chosen_ids=[]
-    # chosen_mask=[]
-    # rejected_mask=[]
-    # rejected_ids=[]
-    # for pair in pairs:
-    #     chosen_ids.append(pair['chosen_ids'])
-    #     chosen_mask.append(pair['chosen_mask'])
-    #     rejected_mask.append(pair['rejected_mask'])
-    #     rejected_ids.append(pair['rejected_ids'])
-    # chosen_ids=np.array(chosen_ids)
-    # chosen_mask=np.array(chosen_mask)
-    # rejected_mask=np.array(rejected_mask)
-    # rejected_ids=np.array(rejected_ids)
-    # policy_logprob_chosen=policy_sequence_logprob(params, chosen_ids, chosen_mask)
-    # policy_logprob_rejected=policy_sequence_logprob(params, rejected_ids, rejected_mask)
-    # dpo_=dpo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
-    # result['dpo_loss']=dpo_
-    # pref_acc=preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
-    # result['preference_accuracy']=pref_acc
-    # kl=kl_to_reference(policy_logprob_chosen, ref['chosen'])+kl_to_reference(policy_logprob_rejected, ref_logprobs['rejected'])
-    # result['kl_to_reference']=kl 
-    # D=reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
-    # for i,j in D.items():
-    #     result[i]=j
-    # return result
-
+    # Result dict of all the summary
     result = {}
-
     policy_chosen = []
     policy_rejected = []
     ref_chosen = []
     ref_rejected = []
-
     # Evaluate every preference pair separately
     for pair,ref in zip(pairs,ref_logprobs):
         chosen_lp = policy_sequence_logprob(

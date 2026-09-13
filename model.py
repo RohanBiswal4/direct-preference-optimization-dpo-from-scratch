@@ -264,8 +264,11 @@ def train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch
         history.append(metric)
     return params,history
 
-# Step 20 - length_normalized_logprob (not yet solved)
-# TODO: implement
+# Step 20 - length_normalized_logprob
+def length_normalized_logprob(seq_logprob, mask):
+    # Normalize sequence log-probabilities by their valid token counts.So that longer seq don't get penalized more
+    valid_counts=np.sum(mask,axis=-1) # valid only if mask is 1
+    return seq_logprob/valid_counts # Normalize
 
 # Step 21 - ipo_loss (not yet solved)
 # TODO: implement

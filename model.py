@@ -195,37 +195,23 @@ def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
     #     sigmoid = 1.0 / (1.0 + np.exp(-margins))
     #     dL_dm = sigmoid - 1.0
     #     scale = beta * dL_dm[b] / B
-    B = len(batch['chosen_ids'])
-
-    policy_chosen = policy_sequence_logprob(
-        params,
-        batch['chosen_ids'],
-        batch['chosen_mask']
-    )
-
-    policy_rejected = policy_sequence_logprob(
-        params,
-        batch['rejected_ids'],
-        batch['rejected_mask']
-    )
-
-    ref_chosen = np.asarray( ref_logprobs_batch['chosen'])
-    #     [x['chosen'] for x in ref_logprobs_batch]
-    # )
-
-    ref_rejected = np.asarray( ref_logprobs_batch['rejected'])
-    #     [ for x in ref_logprobs_batch]
-    # )
-
+    B = len(batch['chosen_ids']) # The sequence length of each batch
+    policy_logprob_chosen = policy_sequence_logprob(params,batch['chosen_ids'],batch['chosen_mask'] )
+    policy_logprob_rejected = policy_sequence_logprob(params,batch['rejected_ids'],batch['rejected_mask'])
+    ref_logprob_chosen = np.asarray( ref_logprobs_batch['chosen'])
+    ref_logprob_rejected = np.asarray( ref_logprobs_batch['rejected'])
     # DPO margins
-    margins = beta * (
-        (policy_chosen - ref_chosen)
-        - (policy_rejected - ref_rejected)
-    )
-
+    margins =dpo_pair_margin(policy_logprob_chosen, 
+                            policy_logprob_rejected, 
+                            ref_logprob_chosen, 
+                            ref_logprob_rejected,
+                            beta)
     # Mean DPO loss
-    losses = np.logaddexp(0.0, -margins)
-    loss = float(np.mean(losses))
+    loss = dpo_loss(policy_logprob_chosen, 
+                    policy_logprob_rejected, 
+                    ref_logprob_chosen, 
+                    ref_logprob_rejected, 
+                    beta)
 
     # dL/dm
     sigmoid = 1.0 / (1.0 + np.exp(-margins))
@@ -238,12 +224,10 @@ def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
     }
 
     for b in range(B):
-
-        # Add batch dimension because the gradient function
+        # Adds batch dimension because the gradient function
         # expects (B, T)
         chosen_ids = batch['chosen_ids'][b:b+1]
         chosen_mask = batch['chosen_mask'][b:b+1]
-
         rejected_ids = batch['rejected_ids'][b:b+1]
         rejected_mask = batch['rejected_mask'][b:b+1]
 
@@ -253,7 +237,6 @@ def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
             chosen_ids,
             chosen_mask
         )
-
         grad_rejected = sequence_logprob_grad(
             params,
             rejected_ids,
@@ -268,7 +251,7 @@ def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
         #    - d log pi_rejected/dtheta)
 
         scale = beta * dL_dm[b] / B
-
+        # for each key attach the full gradients
         for key in params:
             grads[key] += scale * (
                 grad_chosen[key] - grad_rejected[key]

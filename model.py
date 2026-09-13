@@ -243,7 +243,7 @@ def dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate):
     # Execute one DPO gradient-descent update; return updated params + metrics
     loss,grad=dpo_loss_grad(params, batch, ref_logprobs_batch, beta)
     m={'loss':float(loss)}
-    updated={}
+    updated={} # the new parameters after updates 
     for key in params:
         updated[key]=params[key]-learning_rate*grad[key]
     return updated,m

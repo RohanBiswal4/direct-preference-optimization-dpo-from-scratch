@@ -256,10 +256,10 @@ def train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch
     for step in range(num_steps):
         batch=sample_preference_batch(pairs, batch_size, rng=rng)
         ref_logprobs_batch={
-            'chosen':ref_logprobs['chosen'][batch['indices']],
-            'rejected':ref_logprobs['rejected'][batch['indices']]
+            'chosen': np.asarray(ref_logprobs['chosen'])[indices],
+            'rejected': np.asarray(ref_logprobs['rejected'])[indices]
         }
-        params,metric=dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate)
+        s,metric=dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate)
         metric['step']=step 
         history.append(metric)
     return params,history

@@ -293,8 +293,10 @@ def preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logp
     # return higher chosen reward fraction
     return np.sum(np.where(chosen_reward>rejected_reward,1,0))/len(chosen_reward)
 
-# Step 24 - kl_to_reference (not yet solved)
-# TODO: implement
+# Step 24 - kl_to_reference
+def kl_to_reference(policy_logprob, reference_logprob):
+    # Estimate the mean KL divergence of the policy from the reference...
+    return np.mean(policy_reference_logratio(policy_logprob, reference_logprob)).item()
 
 # Step 25 - reward_margin_stats (not yet solved)
 # TODO: implement

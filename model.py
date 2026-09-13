@@ -251,7 +251,7 @@ def dpo_train_step(params, batch, ref_logprobs_batch, beta, learning_rate):
 
 # Step 19 - train_dpo
 def train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch_size, rng=None):
-    # TODO: Sample batches, run DPO train steps, record per-step metrics.
+    # Sample batches, run DPO train steps, record per-step metrics.
     history=[]
     for step in range(num_steps):
         batch=sample_preference_batch(pairs, batch_size, rng=rng)

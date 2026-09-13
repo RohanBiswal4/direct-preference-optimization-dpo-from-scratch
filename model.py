@@ -320,13 +320,13 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
     for pair,ref in zip(pairs,ref_logprobs):
         chosen_lp = policy_sequence_logprob(
             params,
-            pair['chosen_ids'],
-            pair['chosen_mask']
+            pair['chosen_ids'][None,:],
+            pair['chosen_mask'][None,:]
         )
         rejected_lp = policy_sequence_logprob(
             params,
-            pair['rejected_ids'],
-            pair['rejected_mask']
+            pair['rejected_ids'][None,:],
+            pair['rejected_mask'][None,:]
         )
         policy_chosen.append(chosen_lp)
         policy_rejected.append(rejected_lp)
@@ -383,6 +383,15 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
 
     return result
 
-# Step 27 - run_dpo_pipeline (not yet solved)
-# TODO: implement
+# Step 27 - run_dpo_pipeline
+def run_dpo_pipeline(vocab_size, d_model, prompts, chosen_ids, rejected_ids, chosen_mask, rejected_mask, beta, learning_rate, num_steps, batch_size, rng=None):
+    # Wire the full DPO pipeline end-to-end from raw arrays to eval...
+    if rng is None:
+        rng=np.random.default_rng()
+    params=init_policy_params(vocab_size, d_model, rng=rng)
+    pairs=build_preference_pairs(prompts, chosen_ids, rejected_ids, chosen_mask, rejected_mask)
+    ref_logprobs=freeze_reference_logprobs(params, pairs)
+    params,hist=train_dpo(params, pairs, ref_logprobs, beta, learning_rate, num_steps, batch_size, rng=rng)
+    res=evaluate_dpo(params, pairs, ref_logprobs, beta) 
+    return {'params': params, 'history': hist, 'eval_metrics': res}
 

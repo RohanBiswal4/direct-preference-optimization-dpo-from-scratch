@@ -308,8 +308,109 @@ def reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logp
         'frac_positive':preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta)
     }
 
-# Step 26 - evaluate_dpo (not yet solved)
-# TODO: implement
+# Step 26 - evaluate_dpo
+def evaluate_dpo(params, pairs, ref_logprobs, beta):
+    # Aggregate a full set of DPO evaluation metrics over a preference dataset.
+    # result={}
+    # chosen_ids=[]
+    # chosen_mask=[]
+    # rejected_mask=[]
+    # rejected_ids=[]
+    # for pair in pairs:
+    #     chosen_ids.append(pair['chosen_ids'])
+    #     chosen_mask.append(pair['chosen_mask'])
+    #     rejected_mask.append(pair['rejected_mask'])
+    #     rejected_ids.append(pair['rejected_ids'])
+    # chosen_ids=np.array(chosen_ids)
+    # chosen_mask=np.array(chosen_mask)
+    # rejected_mask=np.array(rejected_mask)
+    # rejected_ids=np.array(rejected_ids)
+    # policy_logprob_chosen=policy_sequence_logprob(params, chosen_ids, chosen_mask)
+    # policy_logprob_rejected=policy_sequence_logprob(params, rejected_ids, rejected_mask)
+    # dpo_=dpo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
+    # result['dpo_loss']=dpo_
+    # pref_acc=preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
+    # result['preference_accuracy']=pref_acc
+    # kl=kl_to_reference(policy_logprob_chosen, ref['chosen'])+kl_to_reference(policy_logprob_rejected, ref_logprobs['rejected'])
+    # result['kl_to_reference']=kl 
+    # D=reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logprobs['chosen'], ref_logprobs['rejected'], beta)
+    # for i,j in D.items():
+    #     result[i]=j
+    # return result
+
+    result = {}
+
+    policy_chosen = []
+    policy_rejected = []
+    ref_chosen = []
+    ref_rejected = []
+
+    # Evaluate every preference pair separately
+    for pair,ref in zip(pairs,ref_logprobs):
+        chosen_lp = policy_sequence_logprob(
+            params,
+            pair['chosen_ids'],
+            pair['chosen_mask']
+        )
+        rejected_lp = policy_sequence_logprob(
+            params,
+            pair['rejected_ids'],
+            pair['rejected_mask']
+        )
+        policy_chosen.append(chosen_lp)
+        policy_rejected.append(rejected_lp)
+        ref_chosen.append(ref['chosen'])
+        ref_rejected.append(ref['rejected'])
+
+    # Convert the resulting scalar values to arrays
+    policy_chosen = np.asarray(policy_chosen)
+    policy_rejected = np.asarray(policy_rejected)
+    ref_chosen = np.asarray(ref_chosen)
+    ref_rejected = np.asarray(ref_rejected)
+
+    # DPO loss
+    result['dpo_loss'] = dpo_loss(
+        policy_chosen,
+        policy_rejected,
+        ref_chosen,
+        ref_rejected,
+        beta
+    )
+    # Preference accuracy
+    result['preference_accuracy'] = preference_accuracy(
+        policy_chosen,
+        policy_rejected,
+        ref_chosen,
+        ref_rejected,
+        beta
+    )
+    # KL to reference
+    kl_chosen = kl_to_reference(
+        policy_chosen,
+        ref_chosen
+    )
+
+    kl_rejected = kl_to_reference(
+        policy_rejected,
+        ref_rejected
+    )
+    # Averaged KL
+    result['kl_to_reference'] = 0.5*(
+        kl_chosen + kl_rejected
+    )
+
+    # Reward-margin statistics
+    margin_stats = reward_margin_stats(
+        policy_chosen,
+        policy_rejected,
+        ref_chosen,
+        ref_rejected,
+        beta
+    )
+    for key, value in margin_stats.items():
+        result[key] = value
+
+    return result
 
 # Step 27 - run_dpo_pipeline (not yet solved)
 # TODO: implement

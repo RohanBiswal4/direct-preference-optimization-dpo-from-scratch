@@ -270,8 +270,12 @@ def length_normalized_logprob(seq_logprob, mask):
     valid_counts=np.sum(mask,axis=-1) # valid only if mask is 1
     return seq_logprob/valid_counts # Normalize
 
-# Step 21 - ipo_loss (not yet solved)
-# TODO: implement
+# Step 21 - ipo_loss
+def ipo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
+    # Evaluate mean squared IPO loss on unscaled log-ratio margins
+    # margin given beta=1 for unscaled
+    margin=dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected,1)
+    return np.mean((margin -0.5/beta)**2).item() # the squred ipo loss
 
 # Step 22 - implicit_reward (not yet solved)
 # TODO: implement

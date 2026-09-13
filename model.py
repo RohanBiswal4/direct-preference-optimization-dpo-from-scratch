@@ -137,14 +137,29 @@ def sample_preference_batch(pairs, batch_size, rng=None):
 # Step 13 - freeze_reference_logprobs
 def freeze_reference_logprobs(ref_params, pairs):
     # Precompute and freeze reference-model sequence log-probabilities for every chosen and rejected response...
-    L=[]
-    if len(pairs)>0:
-        for i in range(len(pairs)):
-            out={}
-            out['chosen']=policy_sequence_logprob(ref_params, pairs[i]['chosen_ids'][None,:], pairs[i]['chosen_mask'][None,:])[0]
-            out['rejected']=policy_sequence_logprob(ref_params, pairs[i]['rejected_ids'][None,:], pairs[i]['rejected_mask'][None,:])[0]
-            L.append(out)
-    return L
+    chosen = []
+    rejected = []
+
+    for pair in pairs:
+        chosen_lp = policy_sequence_logprob(
+            ref_params,
+            pair['chosen_ids'][None, :],
+            pair['chosen_mask'][None, :]
+        )[0]
+
+        rejected_lp = policy_sequence_logprob(
+            ref_params,
+            pair['rejected_ids'][None, :],
+            pair['rejected_mask'][None, :]
+        )[0]
+
+        chosen.append(chosen_lp)
+        rejected.append(rejected_lp)
+
+    return {
+        'chosen': np.asarray(chosen),
+        'rejected': np.asarray(rejected)
+    }
 
 # Step 14 - policy_reference_logratio
 def policy_reference_logratio(policy_logprob, reference_logprob):
@@ -286,12 +301,15 @@ def implicit_reward(policy_logprob, reference_logprob, beta):
 # Step 23 - preference_accuracy
 def preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
     # fraction of pairs where chosen has higher implicit DPO reward
-    # Chosen rewards
-    chosen_reward=implicit_reward(policy_logprob_chosen, ref_logprob_chosen, beta)
-    # Rejected rewards
-    rejected_reward=implicit_reward(policy_logprob_rejected, ref_logprob_rejected, beta)
-    # return higher chosen reward fraction
-    return np.sum(np.where(chosen_reward>rejected_reward,1,0))/len(chosen_reward)
+    margins = dpo_pair_margin(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta
+    )
+
+    return float(np.mean(margins > 0))
 
 # Step 24 - kl_to_reference
 def kl_to_reference(policy_logprob, reference_logprob):

@@ -283,8 +283,15 @@ def implicit_reward(policy_logprob, reference_logprob, beta):
     reward=policy_reference_logratio(policy_logprob, reference_logprob)*beta 
     return reward # the KL divergence
 
-# Step 23 - preference_accuracy (not yet solved)
-# TODO: implement
+# Step 23 - preference_accuracy
+def preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
+    # fraction of pairs where chosen has higher implicit DPO reward
+    # Chosen rewards
+    chosen_reward=implicit_reward(policy_logprob_chosen, ref_logprob_chosen, beta)
+    # Rejected rewards
+    rejected_reward=implicit_reward(policy_logprob_rejected, ref_logprob_rejected, beta)
+    # return higher chosen reward fraction
+    return np.sum(np.where(chosen_reward>rejected_reward,1,0))/len(chosen_reward)
 
 # Step 24 - kl_to_reference (not yet solved)
 # TODO: implement
